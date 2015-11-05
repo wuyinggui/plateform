@@ -33,13 +33,10 @@ import com.opensymphony.xwork2.ActionSupport;
 import com.ucar.model.User;
 import com.ucar.model.bean.LBSUser;
 import com.ucar.model.service.LBSUserService;
-import com.ucar.model.service.MenuService;
 import com.ucar.model.service.UserService;
 import com.ucar.model.vo.UserVO;
 import com.ucar.util.CookieUtil;
-import com.ucar.util.MD5AndSHAUtil;
 import com.ucar.util.Message;
-import com.ucar.util.RedisUtil;
 import com.ucar.util.SessionUtil;
 @Controller("userAction")
 @Scope("prototype")
@@ -67,24 +64,14 @@ public class UserAction extends BaseAction{
 			}
 			if(message.getMsg()==null){
 				if("1".equals(entity.getIsAuthen())){
-					if(StringUtils.isNullOrEmpty(entity.getUsername())){
-						String username = (String) RedisUtil.getDataFromRedis(LBSUserService.AUTH_REQUEST_IP+requestIp,String.class);
-						if(username != null){
-							result = getResultByRedis(username);
-						}else{
-							result = "{\"success\":"+false+"}";
-						}
-					}else{
 						//cookie登录
 						boolean flag = cookieLogin(entity.getUsername(), entity.getPassword());
 						if(flag){
 							//cookie登录成功
 							result = "{\"success\":"+true+",\"username\":\""+entity.getUsername()+"\"}";
 						}else{
-							//cookie登录失败，从redis获取
-							result = getResultByRedis(entity.getUsername());
+							result = "{\"success\":"+false+"}";
 						}
-					}
 					
 					return "json";
 				}else{
@@ -101,16 +88,12 @@ public class UserAction extends BaseAction{
 						LBSUser lbsEntity = new LBSUser();
 						String timeStamp=Long.toString(System.currentTimeMillis());
 						String nonse=Integer.toString((new Random()).nextInt(10000000));
-						String signature=MD5AndSHAUtil.md5(""+LBSUserService.SYSFLG+timeStamp+nonse+LBSUserService.TOKEN);
 						lbsEntity.setUsername(nEntity.getUsername());
 						lbsEntity.setPassword(nEntity.getPassword());
-						lbsEntity.setSignature(signature);
 						lbsEntity.setTimeStamp(timeStamp);
 						lbsEntity.setNonse(nonse);
 						SessionUtil.setUserInfo(lbsEntity);//session存放
 						CookieUtil.addCookie(lbsEntity,60*60*2);//cookie设置
-						RedisUtil.writeToRedis(lbsEntity.getUsername(), LBSUserService.AUTH_REQUEST_IP+requestIp, 60*60*2);//ip对应username
-						RedisUtil.writeToRedis(lbsEntity, LBSUserService.AUTH_USER_PREFIX+lbsEntity.getUsername(), 60*60*2);//redis存储
 						message.setStatus(true);
 						message.setMsg(SUCCESS);
 						return SUCCESS;
@@ -128,27 +111,11 @@ public class UserAction extends BaseAction{
 	public String logout(){
 		SessionUtil.invalidate();
 		CookieUtil.deleteCookie();
-		HttpServletRequest request = ServletActionContext.getRequest();
-		String username = (String) RedisUtil.getDataFromRedis(LBSUserService.AUTH_REQUEST_IP+getIpAddr(request), String.class);
-		if(username != null){
-			RedisUtil.deleteDataFromRedis(LBSUserService.AUTH_REQUEST_IP+getIpAddr(request));
-			RedisUtil.deleteDataFromRedis(LBSUserService.AUTH_USER_PREFIX+username);
-		}
 		return LOGIN;
 	}
 	
 	public String error(){
 		return ERROR;
-	}
-	public String getResultByRedis(String username){
-		String result = "";
-		User user = (User) RedisUtil.getDataFromRedis(LBSUserService.AUTH_USER_PREFIX+entity.getUsername(),User.class);
-		if(user != null){
-			result = "{\"success\":"+true+",\"username\":\""+username+"\"}";
-		}else{
-			result = "{\"success\":"+false+"}";
-		}
-		return result;
 	}
 	public String getIpAddr(HttpServletRequest request) {
 	    String ip = request.getHeader("x-forwarded-for");

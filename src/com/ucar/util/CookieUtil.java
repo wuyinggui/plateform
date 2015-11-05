@@ -29,7 +29,7 @@ public class CookieUtil {
 		cookie.setDomain(host);
 		cookie.setMaxAge(seconds);//设置2小时有效期
 		response.addCookie(cookie);
-		cookie = new Cookie("JSESSIONAUTH", Encrypt.encryptBASE64(user.getPassword().getBytes()));
+		cookie = new Cookie("JSESSIONAUTH", user.getPassword());
 		cookie.setPath("/");
 		cookie.setDomain(host);
 		cookie.setMaxAge(seconds);//设置30分钟有效期

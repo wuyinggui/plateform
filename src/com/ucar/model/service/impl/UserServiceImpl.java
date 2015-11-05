@@ -7,8 +7,6 @@ import org.springframework.stereotype.Service;
 import com.ucar.dao.UserDaoImpl;
 import com.ucar.model.User;
 import com.ucar.model.service.UserService;
-import com.ucar.util.Encrypt;
-import com.ucar.util.MD5Encrypt;
 @Service("userService")
 @Scope("prototype")
 public class UserServiceImpl implements UserService{
@@ -18,7 +16,6 @@ public class UserServiceImpl implements UserService{
 
 	public User loginValidate(User user) {
 		try {
-			user.setPassword(Encrypt.sha1Encode(user.getPassword()));
 			return userDao.loginValidate(user);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -33,7 +30,6 @@ public class UserServiceImpl implements UserService{
 	public User cookieLoginValidate(User user) {
 		User result = null;
 		try {
-			user.setPassword(new String(Encrypt.decryptBASE64(user.getPassword())));
 			result = userDao.loginValidate(user);
 		} catch (Exception e) {
 			e.printStackTrace();

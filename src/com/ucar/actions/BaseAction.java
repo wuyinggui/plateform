@@ -8,7 +8,6 @@ import org.apache.struts2.interceptor.SessionAware;
 
 import com.opensymphony.xwork2.ActionSupport;
 import com.opensymphony.xwork2.ModelDriven;
-import com.ucar.util.ExceptionType;
 import com.ucar.util.Message;
 
 public class BaseAction extends ActionSupport implements RequestAware,SessionAware{
@@ -41,7 +40,6 @@ public class BaseAction extends ActionSupport implements RequestAware,SessionAwa
 		Message message=new Message(false);
 		if(o==null){
 			message.setMsg("add information is null");
-			message.setExceptionId(ExceptionType.EXC_PLAT_NULL.getValue());
 		}
 		return message;
 	}

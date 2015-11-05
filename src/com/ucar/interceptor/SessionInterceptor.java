@@ -18,7 +18,6 @@ import com.ucar.model.User;
 import com.ucar.model.bean.LBSUser;
 import com.ucar.model.service.LBSUserService;
 import com.ucar.util.CookieUtil;
-import com.ucar.util.RedisUtil;
 import com.ucar.util.SessionUtil;
 
 public class SessionInterceptor extends MethodFilterInterceptor {
@@ -73,13 +72,6 @@ public class SessionInterceptor extends MethodFilterInterceptor {
 				}
 				//从redis中读取
 				String requestIp = userAction.getIpAddr(request);
-				String username = (String) RedisUtil.getDataFromRedis(LBSUserService.AUTH_REQUEST_IP+requestIp,String.class);
-				if(username != null){
-					LBSUser user = (LBSUser) RedisUtil.getDataFromRedis(LBSUserService.AUTH_USER_PREFIX+username,LBSUser.class);
-					if(user != null){
-						return arg0.invoke();
-					}
-				}
 				if ("XMLHttpRequest".equalsIgnoreCase(type)) {// ajax请求
 					PrintWriter printWriter = response.getWriter();  
 	                printWriter.print("timeout");  

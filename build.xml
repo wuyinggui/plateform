@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="ucarlbsplatform" default="deploy"  basedir=".">
+	<property environment="env" />
+	<property name="webapp.name" value="ucarlbsplatform" />
+	<property name="dist.dir" value="${basedir}/target" />
+	<property name="catalina.home" value="${env.CATALINA_HOME}" />
+	<!--<property name="catalina.home" value="D:/dev/apache-tomcat-8.0.9" />-->
+	<property name="webRoot.dir" value="${basedir}/WebContent" />
+	<property name="src.dir" value="${basedir}/src" />
+	<property name="lib.dir" value="${webRoot.dir}/WEB-INF/lib" />
+	<property name="build.dir" value="${basedir}/build" />
+	<!-- 使用eclipse jdt进行编译，而不使用JDK编译  -->
+<!-- 	<property name="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter" /> -->
+
+	<!-- 初始化classpath -->
+	<path id="project.classpath">
+		<fileset dir="${lib.dir}">
+			<include name="**/*.jar" />
+		</fileset>
+		
+		<!-- 添加tomcat类路径 -->
+		<fileset dir="${catalina.home}/lib">
+			<include name="*.jar" />
+		</fileset>
+	</path>
+
+	<!-- get the source compile classpath in a printable form -->
+	<pathconvert pathsep="${line.separator}|   |-- "
+             property="echo.path.compile"
+             refid="project.classpath">
+	</pathconvert>
+	
+	<!-- show classpath jars -->
+	<target name="print_classpath">
+		<echo message="|-- compile classpath"/>
+		<echo message="|   |"/>
+		<echo message="|   |-- ${echo.path.compile}"/>
+	</target>
+	
+	
+	<!-- 删除之前的目录结构 -->
+	<target name="clear" description="清理旧文件">
+		<delete dir="${build.dir}" />
+		<delete dir="${dist.dir}" />
+		<!--<delete dir="${webapp.name}" /> -->
+		<echo message="end clear..." />
+	</target>
+
+	<!-- 创建目录结构 -->
+	<target name="init" depends="clear" description="创建初始化目录结构">
+		<mkdir dir="${build.dir}/classes" />
+		<mkdir dir="${dist.dir}" />
+		<!--<mkdir dir="${webapp.name}"/>-->
+		<echo message="end init..." />
+	</target>
+
+	<!-- 编译java -->
+	<target name="compile" depends="init" description="编译java文件">
+		<echo message="begin compile..." />
+		<javac srcdir="${src.dir}" destdir="${build.dir}/classes" 
+			includeantruntime="false" nowarn="on" 
+			source="1.7" fork="true" executable="/usr/java/jdk1.7.0_80/bin/javac" debug="true" 
+			encoding="UTF-8"   >
+			<compilerarg line="-Xlint:unchecked" />
+			<classpath refid="project.classpath" />
+		</javac>
+		<copy todir="${build.dir}/classes">
+			<fileset dir="${src.dir}">
+				<include name="**/*.xml" />
+				<include name="**/*.properties" />
+				<include name="**/*.sql" />
+			</fileset>
+		</copy>
+		<echo message="end compile..." />
+	</target>
+
+	<!-- 将class文件打成 jar包 -->
+	<!--  
+	    <target name="pack" depends="compile"> 
+	        <jar jarfile="${build.dir}/${webapp.name}.jar"> 
+	            <fileset dir="${build.dir}/classes"> 
+	                <include name="**/*.class"/> 
+	            </fileset> 
+	        </jar> 
+	    </target> 
+	-->
+
+	<!-- 打成war包, 名称默认为 项目名 -->
+	<target name="war" depends="compile" description="将工程打成war包">
+		<echo message="begin war..." />
+		<war destfile="${dist.dir}/${webapp.name}.war" basedir="${webRoot.dir}" 
+			webxml="${webRoot.dir}/WEB-INF/web.xml">
+			<classes dir="${build.dir}/classes" />
+			<fileset dir="${webRoot.dir}">
+				<include name="***.*" />
+			</fileset>
+		</war>
+		 <echo message="${webRoot.dir}/***.*" />
+		<echo message="end war..." />
+	</target>
+
+	<!-- copy war包 tomcat的deploy目录 -->
+	<!-- <target name="deploy" depends="war" description="部署项目">
+		<echo message="begin deploy..." />
+		<copy file="${dist.dir}/${webapp.name}.war" todir="${catalina.home}/webapps" />
+		<echo message="end deploy..." />
+	</target> -->
+	
+	<target name="deploy"  depends="war">
+		<copydir src="${webRoot.dir}" dest="${dist.dir}/ucarlbsplatform">			
+		</copydir>	
+		<copydir src="${build.dir}/classes" dest="${dist.dir}/ucarlbsplatform/WEB-INF/classes">			
+		</copydir>	
+		<echo message="end deploy..." />
+	</target>
+	
+
+</project>

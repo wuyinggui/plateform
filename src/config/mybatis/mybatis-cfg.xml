@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-config.dtd">  
+<configuration>  
+    <typeAliases>  
+        <typeAlias alias="User" type="com.ucar.model.User"/>  
+        <typeAlias alias="Menu" type="com.ucar.model.vo.Menu"/>
+        <typeAlias alias="City" type="com.ucar.model.vo.City"/>
+    </typeAliases>  
+    <mappers>  
+        <mapper resource="config/mybatis/mapper/UserMapper.xml" />  
+        <mapper resource="config/mybatis/mapper/MenuMapper.xml" />  
+    </mappers>  
+</configuration>    

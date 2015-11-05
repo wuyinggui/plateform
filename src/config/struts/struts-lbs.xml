@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+	"-//Apache Software Foundation//DTD Struts Configuration 2.3//EN"
+	"http://struts.apache.org/dtds/struts-2.3.dtd">
+
+<struts>
+    <package name="LBS" namespace="/LBS" extends="json-default,default">
+		<action name="*AU" class="com.ucar.actions.UserAction" method="{1}">
+			<result name="LBSLogout" type="redirectAction">
+	            <param name="actionName">login</param>
+	            <param name="namespace">/</param>
+	        </result>
+	        <result type="json" name="json">
+				<param name="root">result</param>
+			</result>
+	        <result name="login">/index.jsp</result>
+	        <result name="success" type="redirect">/pages/main.jsp</result>
+	        <result name="error" type="redirect">/pages/error.jsp</result>
+	        <exception-mapping result="error" exception="java.lang.Exception"></exception-mapping>
+		</action>
+	</package>
+</struts>

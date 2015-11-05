@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+	"-//Apache Software Foundation//DTD Struts Configuration 2.3//EN"
+	"http://struts.apache.org/dtds/struts-2.3.dtd">
+
+<struts>
+    <!-- 开发模式下使用,这样可以打印出更详细的错误信息 -->
+    <constant name="struts.devMode" value="false" />
+    <constant name="struts.enable.DynamicMethodInvocation" value="false" />
+    <!--解决乱码    -->
+    <constant name="struts.i18n.encoding" value="UTF-8" />
+    
+    <package name="default" namespace="/" extends="struts-default">
+		<interceptors>
+			<interceptor name="sessionCheck" class="com.ucar.interceptor.SessionInterceptor" />
+			<interceptor-stack name="platform-sessionCheck">
+				<interceptor-ref name="defaultStack" />
+				<interceptor-ref name="sessionCheck">
+					<param name="excludeMethods">loginAU,LBSLogin</param>
+				</interceptor-ref>
+			</interceptor-stack>
+		</interceptors>
+		<default-interceptor-ref name="platform-sessionCheck"/>
+		<global-results>
+			<result name="session_invalid">/pages/session_invalid.jsp</result>
+			<result name="exception">/pages/error.jsp</result>
+		</global-results>
+		<global-exception-mappings>
+			<exception-mapping result="exception" exception="java.lang.Exception">
+			</exception-mapping>
+			<exception-mapping result="exception" exception="org.apache.jasper.JasperException"></exception-mapping>
+		</global-exception-mappings>
+		
+    </package>
+    <include file="/config/struts/struts-lbs.xml"></include>
+    <include file="/config/struts/struts-menu.xml"></include>
+</struts>

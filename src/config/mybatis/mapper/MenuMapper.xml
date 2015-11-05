@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">  
+<mapper namespace="com.ucar.dao.MenuDao">
+	<sql id="tbl_name">t_dp_web_plat_user</sql>
+	<sql id="tbl_menu_Column">
+		id,menuid,menu_name,menu_url,menu_name_zh_cn,is_leaf,seq
+	</sql>
+	
+	<sql id="tbl_menu_ColumnAll">
+		id,menuid,menu_name,menu_url,menu_name_zh_cn,is_leaf,seq,parent_id
+	</sql>
+	<select id="selectMenuIdsByUser" parameterType="User" resultType="string">
+		select `menu_ids` from `t_dp_web_plat_user_menus` where `user_name` = #{username}
+	</select>
+	<select id="selectMenusByMenuIds" parameterType="java.util.List" resultType="Menu">
+		select <include refid="tbl_menu_Column"/> from `t_dp_web_plat_menu_product` where id in 
+		<foreach item="item"  collection="list"  open="(" separator="," close=")"> 
+            #{item}
+    	</foreach>
+    	order by seq asc,id asc
+	</select>
+	
+	<select id="selectUserList" resultType="User">
+		select username as username from <include refid="tbl_name"/>
+		
+	</select>
+	
+	<select id="selectUserMenuListByUser" parameterType="User" resultType="Menu">
+		select a.* from t_dp_web_plat_user_menus a
+		inner join t_dp_web_plat_menu_product b
+		on FIND_IN_SET(b.id,a.menu_ids)
+		order by b.seq asc,b.id asc
+	</select>
+	
+	<select id="selectUserCityListByUser" parameterType="User" resultType="City">
+		select a.*,b.id,b.name as city_name from t_dp_web_plat_user_menus a
+		inner join t_scd_city_code b 
+		on b.status = 2 and b.is_business= 1 and FIND_IN_SET(b.id,a.city_ids)
+		
+	</select>
+	
+	<select id="selectAllMenu" resultType="Menu">
+		select <include refid="tbl_menu_Column"/> from `t_dp_web_plat_menu_product` where parent_id is null or parent_id = '' order by seq asc,id asc
+	</select>
+	
+	<select id="selectOldUserMenu" parameterType="com.ucar.model.vo.UserMenu" resultType="com.ucar.model.vo.UserMenu">
+		select * from t_dp_web_plat_user_menus where user_name = #{user_name} limit 1
+	</select>
+	
+	
+	<insert id="saveUserInfo" useGeneratedKeys="true" keyProperty="id" parameterType="com.ucar.model.vo.UserMenu">
+		replace into t_dp_web_plat_user_menus (user_name,menu_ids,city_ids,create_time)
+		values
+		(#{user_name},#{menu_ids},#{city_ids},#{time})
+	</insert>
+	<update id="updateUserInfo" parameterType="com.ucar.model.vo.UserMenu">
+		update t_dp_web_plat_user_menus 
+		<set>
+			update_time = #{time},
+			<if test="menu_ids != null">
+				menu_ids = #{menu_ids}
+			</if>
+			<if test="city_ids != null">
+				city_ids = #{city_ids}
+			</if>
+		</set>
+		
+		<choose>
+			<when test="user_name != null and user_name !=''">
+				where user_name = #{user_name}
+			</when>
+			<otherwise>
+				where user_name !='root'
+			</otherwise>
+		</choose>
+		
+	</update>
+	
+	
+	
+	<select id="selectAllCity" resultType="com.ucar.model.vo.City">
+		select id,name from t_scd_city_code  where status = 2 and is_business= 1 
+	</select>
+	
+	<select id="selectCityIdsByUser" parameterType="User" resultType="string">
+		select city_ids from t_dp_web_plat_user_menus where `user_name` = #{username}
+	</select>
+	
+	<select id="selectSubMenuList" parameterType="string" resultType="Menu">
+		select * from `t_dp_web_plat_menu_product` where parent_id = #{parent_id}  order by seq asc,id asc
+	</select>
+	
+	<select id="selectAllMenuList" resultType="Menu">
+		select <include refid="tbl_menu_ColumnAll"/> from `t_dp_web_plat_menu_product` 
+	</select>
+	
+	<select id="selectAllMenuListNew" resultType="Menu">
+		select <include refid="tbl_menu_ColumnAll"/> from `t_dp_web_plat_menu_product`
+	</select>
+	
+	<select id="selectMenuByMenuID" parameterType="string" resultType="Menu">
+		select <include refid="tbl_menu_ColumnAll"/> from `t_dp_web_plat_menu_product` where menuid = #{menuid} 
+	</select>
+	
+	<insert id="insertMenu" parameterType="Menu" useGeneratedKeys="true" keyProperty="id">
+		insert into `t_dp_web_plat_menu_product` (menuid,parent_id,menu_name,menu_url,is_leaf,seq,menu_name_zh_cn,is_del)
+		values(#{menuid},#{parent_id},#{menu_name},#{menu_url},#{is_leaf},#{seq},#{menu_name_zh_cn},0)
+	</insert>
+	
+	<update id="updateMenu" parameterType="Menu">
+		update `t_dp_web_plat_menu_product`
+		<set>
+			<if test="menuid!=null">
+				menuid = #{menuid},
+			</if>
+			<if test="parent_id!= null">
+				parent_id = #{parent_id},
+			</if>
+			<if test="menu_name!=null">
+				menu_name = #{menu_name},
+			</if>
+			<if test="menu_url!=null">
+				menu_url = #{menu_url},
+			</if>
+			<if test="is_leaf!=null">
+				is_leaf = #{is_leaf},
+			</if>
+			<if test="seq != null">
+				seq = #{seq},
+			</if>
+			<if test="menu_name_zh_cn!=null">
+				menu_name_zh_cn = #{menu_name_zh_cn},
+			</if>
+			<if test="is_del!=null">
+				is_del=#{is_del}
+			</if>
+		</set>
+		where id = #{id}
+	</update>
+	<delete id="deleteMenu" parameterType="Menu">
+		delete from `t_dp_web_plat_menu_product` where id = #{id}
+	</delete>
+	<select id="selectMenuById" parameterType="int" resultType="Menu">
+		select <include refid="tbl_menu_ColumnAll"/> from `t_dp_web_plat_menu_product` where id = #{id}  limit 1
+	</select>
+	
+	<select id="findMenuToPage" parameterType="java.util.Map" resultType="User">
+		select username as username from <include refid="tbl_name"/>
+		<if test="sSearch!= null and sSearch!=''">
+			where  username like "%"#{sSearch}"%" 
+		</if>
+		limit #{start},#{end}
+	</select>
+	
+	<select id="getAllMenuListCount" parameterType="java.util.Map" resultType="int">
+		select count(username)  from <include refid="tbl_name"/> 
+		<if test="sSearch!= null and sSearch!=''">
+			where  username like "%"#{sSearch}"%" 
+		</if>
+		limit 1
+	</select>
+	
+	<select id="getMenusCount" parameterType="java.util.Map" resultType="int">
+		select count(id) from `t_dp_web_plat_menu_product`
+		<if test="sSearch!=null and sSearch!=''">
+			where menuid like "%"#{sSearch}"%" 
+			or menu_name like "%"#{sSearch}"%"
+			or menu_url like "%"#{sSearch}"%"
+			or menu_name_zh_cn like "%"#{sSearch}"%"
+		</if>
+		limit 1
+	</select>
+	
+	<select id="findMenus" parameterType="java.util.Map" resultType="Menu">
+		select <include refid="tbl_menu_ColumnAll"/> from `t_dp_web_plat_menu_product`
+		<if test="sSearch!=null and sSearch!=''">
+			where menuid like "%"#{sSearch}"%" 
+			or menu_name like "%"#{sSearch}"%"
+			or menu_url like "%"#{sSearch}"%"
+			or menu_name_zh_cn like "%"#{sSearch}"%"
+		</if>
+		order by seq asc,id asc
+		limit #{start},#{end}
+	</select>
+	
+	<update id="updateSubMenu" parameterType="Menu" >
+		update `t_dp_web_plat_menu_product` set parent_id = #{parent_id}
+		where parent_id = #{menuid}
+	</update>
+	
+	<select id="selectNextSeqByParentId" parameterType="string" resultType="int">
+		select  case when max(seq)   is null then 1 else max(seq) +1 end as nextSeq from  t_dp_web_plat_menu_product 
+		<choose>
+			<when test="_parameter =='' or _parameter == null">
+				where parent_id is null  and seq <![CDATA[ < ]]>  100000000
+			</when>
+			<otherwise>
+				where parent_id = #{_parameter}
+			</otherwise>
+		</choose>
+		
+	</select>
+	
+	<update id="updateLastMenu" parameterType="Menu">
+		update t_dp_web_plat_menu_product 
+		<set>
+			<if test="seq != null">
+				seq = seq- 1
+			</if>
+		</set>
+		where 
+		<choose>
+			<when test="parent_id == null or parent_id ==''">
+				parent_id is null
+			</when>
+			<otherwise>
+				parent_id = #{parent_id}
+			</otherwise>
+		</choose>
+		 and seq between #{seq} and 100000000 
+	</update>
+	
+	<update id="updateBrotherMenu" parameterType="Menu">
+		update t_dp_web_plat_menu_product 
+		<set>
+			<if test="seq != null">
+				seq = seq+ 1
+			</if>
+		</set>
+		where 
+		<choose>
+			<when test="parent_id == null or parent_id ==''">
+				parent_id is null
+			</when>
+			<otherwise>
+				parent_id = #{parent_id}
+			</otherwise>
+		</choose>
+		 and seq between #{seq} and 100000000 
+	</update>
+</mapper>  

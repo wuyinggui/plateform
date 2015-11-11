@@ -9,7 +9,7 @@
 <html lang="en">
 	<head>
 		<meta charset="utf-8" />
-		<title>欢迎使用神州专车LBS平台</title>
+		<title>欢迎使用</title>
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<!-- basic styles -->
 		<link href="<%=basePath%>/assets/css/bootstrap.min.css" rel="stylesheet" />
